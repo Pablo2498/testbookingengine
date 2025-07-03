@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
+from datetime import date
 
 from .form_dates import Ymd
 from .forms import *
@@ -183,10 +184,42 @@ class DashboardView(View):
         today_min = datetime.combine(today, time.min)
         today_max = datetime.combine(today, time.max)
         today_range = (today_min, today_max)
+
         new_bookings = (Booking.objects
                         .filter(created__range=today_range)
                         .values("id")
                         ).count()
+
+        # calcular porcentaje de ocupación
+        confirmed_bookings = Booking.objects.filter(
+            state="NEW",
+            checkin__lte=today,
+            checkout__gt=today
+        ).count()
+        print("Estados reales en BD:", Booking.objects.values_list('state', flat=True))
+
+        print("FECHA DE HOY:", date.today())
+
+        # Mostrar las reservas activas para hoy
+        reservas_activas = Booking.objects.filter(
+            checkin__lte=date.today(),
+            checkout__gt=date.today()
+        )
+
+        print("RESERVAS ACTIVAS HOY:")
+        for r in reservas_activas:
+            print(f"ID: {r.id}, checkin: {r.checkin}, checkout: {r.checkout}, estado: {r.state}")
+
+        # Mostrar cuántas habitaciones hay
+        print("TOTAL HABITACIONES:", Room.objects.count())
+        total_rooms = Room.objects.count()
+
+        occupancy_percentage = 0
+        if total_rooms > 0:
+            occupancy_percentage = round((confirmed_bookings / total_rooms) * 100, 2)
+            print("Confirmed bookings:", confirmed_bookings)
+            print("Total rooms:", total_rooms)
+            print("Porcentaje calculado:", occupancy_percentage)
 
         # get incoming guests
         incoming = (Booking.objects
@@ -202,26 +235,46 @@ class DashboardView(View):
                      .values("id")
                      ).count()
 
-        # get outcoming guests
+        # get invoiced bookings
         invoiced = (Booking.objects
                     .filter(created__range=today_range)
                     .exclude(state="DEL")
                     .aggregate(Sum('total'))
                     )
+                # Fecha actual
+        today = date.today()
 
-        # preparing context data
+        # Nuevas reservas
+        new_bookings = Booking.objects.filter(created__date=today).exclude(state="DEL").count()
+
+        # Huéspedes ingresando hoy
+        incoming = Booking.objects.filter(checkin=today).exclude(state="DEL").count()
+
+        # Huéspedes saliendo hoy
+        outcoming = Booking.objects.filter(checkout=today).exclude(state="DEL").count()
+
+        # preparar datos para el dashboard
         dashboard = {
             'new_bookings': new_bookings,
             'incoming_guests': incoming,
             'outcoming_guests': outcoming,
-            'invoiced': invoiced
+            'invoiced': invoiced,
+            'occupancy_percentage': occupancy_percentage
 
         }
 
         context = {
-            'dashboard': dashboard
+            'dashboard': dashboard,
+            'new_bookings': new_bookings,
+            'incoming_guests': incoming,
+            'outcoming_guests': outcoming,
+            'invoiced': invoiced
+            
+            
         }
+
         return render(request, "dashboard.html", context)
+
 
 
 class RoomDetailsView(View):

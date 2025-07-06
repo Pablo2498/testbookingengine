@@ -1,24 +1,123 @@
 {% extends "main.html"%}
 
 {% block content %}
-<h1>Crear reserva</h1>
-<div>
-    <h5>Reservando habitación {{room.room_type}} {{room.name}}</h5>
-    <div>Datos de contacto de la reserva:</div>
-    <div class="card card-body">
-        <form method="post" action="">
-            {% csrf_token%}
-            {% for field in customer_form %}
-            <div class="row">
-                <div class="col-md-2">{{field.label_tag}}</div>
-                <div class="col-md-auto">{{field}}</div>
+<div class="booking-container">
+    <div class="booking-header">
+        <h1 class="display-5 fw-bold text-center mb-2">Crear Reserva</h1>
+        <p class="text-muted text-center mb-4">Completa los datos para confirmar tu reserva</p>
+    </div>
+
+    <!-- Room Information Card -->
+    <div class="room-info-card">
+        <div class="room-info-header">
+            <i class="bi bi-house-door me-2"></i>
+            <h4 class="mb-0">Habitación Seleccionada</h4>
+        </div>
+        <div class="room-info-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="info-item">
+                        <i class="bi bi-door-open text-primary"></i>
+                        <div>
+                            <span class="info-label">Habitación</span>
+                            <span class="info-value">{{room.name}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-item">
+                        <i class="bi bi-house text-primary"></i>
+                        <div>
+                            <span class="info-label">Tipo</span>
+                            <span class="info-value">{{room.room_type.name}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-item">
+                        <i class="bi bi-people text-primary"></i>
+                        <div>
+                            <span class="info-label">Capacidad</span>
+                            <span class="info-value">{{room.room_type.max_guests}} huéspedes</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-item">
+                        <i class="bi bi-currency-euro text-primary"></i>
+                        <div>
+                            <span class="info-label">Precio/noche</span>
+                            <span class="info-value">€{{room.room_type.price}}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            {% endfor %}
-            {{booking_form}}
-            
-            <a class="btn btn-outline-primary" href="{% url 'search'%}?{{url_query}}">Atras</a>
-            <input class="btn btn-primary"type="submit" value="Confirmar reserva">
-        </form>
+        </div>
+    </div>
+
+    <!-- Customer Information Card -->
+    <div class="booking-form-card">
+        <div class="booking-form-header">
+            <i class="bi bi-person-fill me-2"></i>
+            <h4 class="mb-0">Datos del Huésped</h4>
+        </div>
+        
+        <div class="booking-form-body">
+            <form method="post" action="">
+                {% csrf_token%}
+                
+                <div class="row g-4">
+                    {% for field in customer_form %}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                {% if field.name == 'name' %}
+                                    <i class="bi bi-person me-1"></i>
+                                {% elif field.name == 'email' %}
+                                    <i class="bi bi-envelope me-1"></i>
+                                {% elif field.name == 'phone' %}
+                                    <i class="bi bi-telephone me-1"></i>
+                                {% endif %}
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="field-error">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Hidden booking form fields -->
+                <div style="display: none;">
+                    {{booking_form}}
+                </div>
+                
+                <div class="booking-actions">
+                    <a class="btn btn-outline-secondary btn-lg me-3" href="{% url 'search'%}?{{url_query}}">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Atrás
+                    </a>
+                    <button class="btn btn-success btn-lg px-4" type="submit">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Confirmar Reserva
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+
+<script>
+    // Add form-control class to form fields for Bootstrap styling
+    document.addEventListener('DOMContentLoaded', function() {
+        const formFields = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]');
+        formFields.forEach(field => {
+            field.classList.add('form-control');
+        });
+    });
+</script>
 {% endblock content%}

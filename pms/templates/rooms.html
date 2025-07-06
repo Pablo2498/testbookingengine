@@ -1,19 +1,135 @@
 {% extends "main.html"%}
 
 {% block content %}
-<h1>Habitaciones del hotel</h1>
-{% for room in rooms%}
-<div class="row card mt-3 mb-3 hover-card bg-tr-250">
-    <div class="col p-3">
-        <div class="">
-            {{room.name}} ({{room.room_type__name}})
-        </div>
-        <div>
-            <a href="{% url 'room_details' pk=room.id%}">Ver detalles</a>
-        </div>
-        
+<div class="rooms-container">
+    <div class="rooms-header">
+        <h1 class="display-5 fw-bold text-center mb-2">Habitaciones del Hotel</h1>
+        <p class="text-muted text-center mb-4">Gestiona y explora todas las habitaciones disponibles</p>
     </div>
-    
+
+    <!-- Search Section -->
+    <div class="search-section">
+        <div class="search-card">
+            <div class="search-card-header">
+                <i class="bi bi-search me-2"></i>
+                <h5 class="mb-0">Buscar Habitaciones</h5>
+            </div>
+            <div class="search-card-body">
+                <form method="get" action="{% url 'rooms' %}">
+                    <div class="search-input-group">
+                        <div class="search-input-wrapper">
+                            <i class="bi bi-door-open search-icon"></i>
+                            <input type="text" class="form-control search-input" name="search" 
+                                   placeholder="Buscar por nombre de habitación..." 
+                                   value="{{ request.GET.search }}">
+                        </div>
+                        <button class="btn btn-primary search-btn" type="submit">
+                            <i class="bi bi-search me-2"></i>
+                            Buscar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if request.GET.search %}
+        <div class="search-results-info">
+            <div class="search-results-content">
+                <i class="bi bi-funnel me-2"></i>
+                <span>Mostrando resultados para: <strong>"{{ request.GET.search }}"</strong></span>
+                <a href="{% url 'rooms' %}" class="btn btn-outline-secondary btn-sm ms-3">
+                    <i class="bi bi-x me-1"></i>
+                    Limpiar búsqueda
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Rooms Grid -->
+    <div class="rooms-grid">
+        {% if rooms %}
+        {% for room in rooms %}
+        <div class="room-card">
+            <div class="room-card-header">
+                <div class="room-title">
+                    <i class="bi bi-door-open me-2"></i>
+                    <h5 class="mb-0">{{room.name}}</h5>
+                </div>
+                <div class="room-status">
+                    <span class="status-badge status-available">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Disponible
+                    </span>
+                </div>
+            </div>
+
+            <div class="room-card-body">
+                <div class="room-type">
+                    <div class="room-type-info">
+                        <i class="bi bi-house text-primary"></i>
+                        <div>
+                            <span class="room-type-label">Tipo de habitación</span>
+                            <span class="room-type-value">{{room.room_type__name}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="room-features">
+                    <div class="feature-item">
+                        <i class="bi bi-people text-success"></i>
+                        <span>Hasta 4 huéspedes</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-wifi text-primary"></i>
+                        <span>WiFi gratuito</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-tv text-info"></i>
+                        <span>TV por cable</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-snow text-info"></i>
+                        <span>Aire acondicionado</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="room-card-footer">
+                <div class="room-price">
+                    <span class="price-label">Precio por noche</span>
+                    <span class="price-value">€120</span>
+                </div>
+                <a href="{% url 'room_details' pk=room.id%}" class="btn btn-primary room-details-btn">
+                    <i class="bi bi-eye me-2"></i>
+                    Ver Detalles
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="no-rooms">
+            <div class="no-rooms-icon">
+                <i class="bi bi-house-x"></i>
+            </div>
+            <h3>No se encontraron habitaciones</h3>
+            <p class="text-muted">
+                {% if request.GET.search %}
+                No hay habitaciones que coincidan con la búsqueda "{{ request.GET.search }}".
+                <br>Intenta con otros términos o limpia la búsqueda.
+                {% else %}
+                Aún no se han registrado habitaciones en el sistema.
+                {% endif %}
+            </p>
+            {% if request.GET.search %}
+            <a href="{% url 'rooms' %}" class="btn btn-primary">
+                <i class="bi bi-arrow-left me-2"></i>
+                Ver todas las habitaciones
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 </div>
-{% endfor %}
+
 {% endblock content%}

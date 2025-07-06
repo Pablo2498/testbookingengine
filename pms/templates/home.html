@@ -1,84 +1,148 @@
 {% extends "main.html"%}
 
 {% block content %}
-
-<h1>Home</h1>
-    {% if filter %}
-    <h3>Resultados de la búsqueda</h3>
-    {% else %}
-    <h3>Reservas Realizadas</h3>
-    {% endif%}
-    
-    <div class="ps-3">
-        {% if bookings|length == 0 %}
-        <div class="alert alert-danger">No hay resultados</div>
+<div class="home-container">
+    <div class="home-header">
+        {% if filter %}
+        <h1 class="display-5 fw-bold text-center mb-2">Resultados de Búsqueda</h1>
+        <p class="text-muted text-center mb-4">Reservas encontradas para tu consulta</p>
+        {% else %}
+        <h1 class="display-5 fw-bold text-center mb-2">Reservas Realizadas</h1>
+        <p class="text-muted text-center mb-4">Gestiona todas las reservas del hotel</p>
         {% endif %}
+    </div>
+
+    <div class="bookings-container">
+        {% if bookings|length == 0 %}
+        <div class="no-results">
+            <div class="no-results-icon">
+                <i class="bi bi-calendar-x"></i>
+            </div>
+            <h3>No hay reservas</h3>
+            <p class="text-muted">{% if filter %}No se encontraron resultados para tu búsqueda{% else %}Aún no se han realizado reservas{% endif %}</p>
+            {% if not filter %}
+            <a href="{% url 'search' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>
+                Crear Nueva Reserva
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
         {% for booking in bookings %}
-        <div class="card card-body row mt-2 hover-card bg-tr-250">
-            <div class="row">
-                <div class="col">
-                    Reserva: {{booking.code}}
+        <div class="booking-card {% if booking.state == 'DEL' %}booking-cancelled{% endif %}">
+            <div class="booking-header">
+                <div class="booking-code">
+                    <i class="bi bi-bookmark-fill me-2"></i>
+                    <span class="fw-bold">{{booking.code}}</span>
+                </div>
+                <div class="booking-status">
                     {% if booking.state == "DEL" %}
-                    <span class="tag tag-red">Cancelada</span>
+                    <span class="status-badge status-cancelled">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Cancelada
+                    </span>
                     {% elif booking.state == "NEW" %}
-                    <span class="tag tag-green">Confirmada</span>
+                    <span class="status-badge status-confirmed">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Confirmada
+                    </span>
                     {% endif %}
                 </div>
             </div>
-            <div class="row">
-                <div class="col">{{booking.customer.name}}</div>
-                <div class="col">
-                    <i class="bi bi-envelope-fill"></i>
-                    <span>{{booking.customer.email}}</span>
-                </div>
-                <div class="col">
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    <span>{{booking.checkin}}</span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col"><a href="{% url 'room_details' pk=booking.room.id%} ">{{booking.room.name}}</a></div>
-                <div class="col">
-                    <i class="bi bi-telephone-fill"></i>
-                    <span>{{booking.customer.phone}}</span>
-                </div>
-                
-                <div class="col">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>{{booking.checkout}}</span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <i class="bi bi-person-fill"></i>
-                    <span>{{booking.guests}}</span>
-                </div>
-                <div class="col"></div>
-                <div class="col"></div>
-            </div>
-            
-            <div class="row">
-                <div class="col">
-                    <span>Total estadía: €{{booking.total}}</span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">
 
-                    <a href="{% url 'edit_booking' pk=booking.id%} " >Editar datos de contacto</a>
-                </div>
-                <div class="col">
+            <div class="booking-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="info-section">
+                            <h6 class="info-section-title">
+                                <i class="bi bi-person-circle me-2"></i>
+                                Huésped
+                            </h6>
+                            <div class="info-item">
+                                <i class="bi bi-person text-primary"></i>
+                                <span class="info-text">{{booking.customer.name}}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="bi bi-envelope text-primary"></i>
+                                <span class="info-text">{{booking.customer.email}}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="bi bi-telephone text-primary"></i>
+                                <span class="info-text">{{booking.customer.phone}}</span>
+                            </div>
+                        </div>
+                    </div>
 
+                    <div class="col-md-6">
+                        <div class="info-section">
+                            <h6 class="info-section-title">
+                                <i class="bi bi-house-door me-2"></i>
+                                Habitación
+                            </h6>
+                            <div class="info-item">
+                                <i class="bi bi-door-open text-primary"></i>
+                                <a href="{% url 'room_details' pk=booking.room.id%}" class="info-link">{{booking.room.name}}</a>
+                            </div>
+                            <div class="info-item">
+                                <i class="bi bi-people text-primary"></i>
+                                <span class="info-text">{{booking.guests}} huésped{{booking.guests|pluralize:"s"}}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col">
 
+                <div class="booking-dates">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="date-item">
+                                <i class="bi bi-calendar-event text-success"></i>
+                                <div>
+                                    <span class="date-label">Check-in</span>
+                                    <span class="date-value">{{booking.checkin|date:"d/m/Y"}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="date-item">
+                                <i class="bi bi-calendar-x text-warning"></i>
+                                <div>
+                                    <span class="date-label">Check-out</span>
+                                    <span class="date-value">{{booking.checkout|date:"d/m/Y"}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="date-item">
+                                <i class="bi bi-currency-euro text-primary"></i>
+                                <div>
+                                    <span class="date-label">Total</span>
+                                    <span class="date-value fw-bold">€{{booking.total}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="booking-actions">
+                <div class="action-group">
+                    <a href="{% url 'edit_booking' pk=booking.id%}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-person-gear me-1"></i>
+                        Editar Contacto
+                    </a>
                     {% if booking.state != "DEL" %}
-                    <a href="{% url 'delete_booking' pk=booking.id%} " >Cancelar reserva</a>
+                    <a href="{% url 'edit_booking_dates' pk=booking.id%}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-calendar-date me-1"></i>
+                        Editar Fechas
+                    </a>
+                    <a href="{% url 'delete_booking' pk=booking.id%}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash me-1"></i>
+                        Cancelar
+                    </a>
                     {% endif %}
                 </div>
-
             </div>
-
         </div>
         {% endfor %}
     </div>

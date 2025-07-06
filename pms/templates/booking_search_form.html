@@ -1,24 +1,70 @@
 {% extends "main.html"%}
 
 {% block content %}
-<h1>Nueva reserva</h1>
-<form action="{% url 'search'%}" method="POST">
-    {% csrf_token%}
-    {% for field in form %}
-    <div class="row">
-        <div class="col-md-2">{{field.label_tag}}</div>
-        <div class="col-md">{{field}}</div>
+<div class="reservation-container">
+    <div class="reservation-header">
+        <h1 class="display-5 fw-bold text-center mb-2">Nueva Reserva</h1>
+        <p class="text-muted text-center mb-4">Busca habitaciones disponibles para tus fechas</p>
     </div>
-    {% endfor %}
-    <div class="row">
-        <div class="col"><span>Días: </span><span id="total-days"></span></div>
-    </div>
-    <div class="row">
-        <div class="col-md-auto">
-            <button class="btn btn-primary" type="submit">Buscar disponibilidad</button>
+
+    <div class="reservation-card">
+        <div class="reservation-card-header">
+            <i class="bi bi-calendar-check me-2"></i>
+            <h4 class="mb-0">Información de la reserva</h4>
+        </div>
+        
+        <div class="reservation-card-body">
+            <form action="{% url 'search'%}" method="POST">
+                {% csrf_token%}
+                <div class="row g-4">
+                    {% for field in form %}
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                {% if field.name == 'checkin' %}
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>
+                                {% elif field.name == 'checkout' %}
+                                    <i class="bi bi-box-arrow-right me-1"></i>
+                                {% elif field.name == 'guests' %}
+                                    <i class="bi bi-people me-1"></i>
+                                {% endif %}
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="reservation-summary mt-4">
+                    <div class="summary-item">
+                        <i class="bi bi-clock-history me-2"></i>
+                        <span class="fw-semibold">Duración:</span>
+                        <span id="total-days" class="text-primary fw-bold">0 días</span>
+                    </div>
+                </div>
+                
+                <div class="reservation-actions mt-4">
+                    <button class="btn btn-primary btn-lg px-4" type="submit">
+                        <i class="bi bi-search me-2"></i>
+                        Buscar Disponibilidad
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-</form>
+</div>
+
 {% load static %}
 <script async src="{% static 'js/search_room.js' %}"></script>
+
+<script>
+    // Add form-control class to form fields for Bootstrap styling
+    document.addEventListener('DOMContentLoaded', function() {
+        const formFields = document.querySelectorAll('input[type="date"], input[type="number"]');
+        formFields.forEach(field => {
+            field.classList.add('form-control');
+        });
+    });
+</script>
 {% endblock content%}

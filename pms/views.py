@@ -202,19 +202,32 @@ class DashboardView(View):
                      .values("id")
                      ).count()
 
-        # get outcoming guests
+        # get invoiced amount
         invoiced = (Booking.objects
                     .filter(created__range=today_range)
                     .exclude(state="DEL")
                     .aggregate(Sum('total'))
                     )
 
+        # calculate occupancy percentage
+        total_confirmed_bookings = (Booking.objects
+                                    .filter(state="NEW")
+                                    .exclude(state="DEL")
+                                    .count())
+        total_rooms = Room.objects.count()
+        
+        if total_rooms > 0:
+            occupancy_percentage = (total_confirmed_bookings / total_rooms) * 100
+        else:
+            occupancy_percentage = 0
+
         # preparing context data
         dashboard = {
             'new_bookings': new_bookings,
             'incoming_guests': incoming,
             'outcoming_guests': outcoming,
-            'invoiced': invoiced
+            'invoiced': invoiced,
+            'occupancy_percentage': occupancy_percentage
 
         }
 
@@ -236,10 +249,78 @@ class RoomDetailsView(View):
         return render(request, "room_detail.html", context)
 
 
+class EditBookingDatesView(View):
+    def get(self, request, pk):
+        # renders the booking dates edition form
+        booking = Booking.objects.get(id=pk)
+        booking_dates_form = BookingDatesForm(instance=booking)
+        context = {
+            'booking': booking,
+            'booking_dates_form': booking_dates_form
+        }
+        return render(request, "edit_booking_dates.html", context)
+
+    @method_decorator(ensure_csrf_cookie)
+    def post(self, request, pk):
+        booking = Booking.objects.get(id=pk)
+        booking_dates_form = BookingDatesForm(request.POST, instance=booking)
+        
+        if booking_dates_form.is_valid():
+            # Get new dates from form
+            new_checkin = booking_dates_form.cleaned_data['checkin']
+            new_checkout = booking_dates_form.cleaned_data['checkout']
+            
+            # Check availability for the same room excluding current booking
+            conflicting_bookings = (Booking.objects
+                                    .filter(room=booking.room)
+                                    .filter(checkin__lte=new_checkout, checkout__gte=new_checkin)
+                                    .exclude(id=booking.id)
+                                    .exclude(state="DEL"))
+            
+            if conflicting_bookings.exists():
+                # Add error to form
+                booking_dates_form.add_error(None, "No hay disponibilidad para las fechas seleccionadas")
+                context = {
+                    'booking': booking,
+                    'booking_dates_form': booking_dates_form
+                }
+                return render(request, "edit_booking_dates.html", context)
+            
+            # Calculate new total based on room price and days
+            from .form_dates import Ymd
+            checkin_ymd = Ymd.Ymd(str(new_checkin))
+            checkout_ymd = Ymd.Ymd(str(new_checkout))
+            total_days = checkout_ymd - checkin_ymd
+            new_total = total_days * booking.room.room_type.price
+            
+            # Update booking with new dates and total
+            booking.checkin = new_checkin
+            booking.checkout = new_checkout
+            booking.total = new_total
+            booking.save()
+            
+            return redirect("/")
+        
+        context = {
+            'booking': booking,
+            'booking_dates_form': booking_dates_form
+        }
+        return render(request, "edit_booking_dates.html", context)
+
+
 class RoomsView(View):
     def get(self, request):
-        # renders a list of rooms
-        rooms = Room.objects.all().values("name", "room_type__name", "id")
+        # renders a list of rooms with optional search filtering
+        rooms = Room.objects.all()
+        
+        # Apply search filter if provided
+        search_query = request.GET.get('search', '')
+        if search_query:
+            rooms = rooms.filter(name__icontains=search_query)
+        
+        # Select only needed fields for template
+        rooms = rooms.values("name", "room_type__name", "id")
+        
         context = {
             'rooms': rooms
         }

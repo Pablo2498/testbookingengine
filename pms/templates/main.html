@@ -14,31 +14,63 @@
 </head>
 <body>
     <div class="navbar-container">
-        <nav class="navbar navbar-expand-lg  navbar-dark bg-dark fixed-top">
+        <nav class="navbar navbar-expand-lg navbar-modern fixed-top">
             <div class="container-fluid">
-               <a class="navbar-brand" href="{% url 'home'%}">CHAPP-Inn</a>
-               <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-               <span class="navbar-toggler-icon"></span>
+               <a class="navbar-brand-modern" href="{% url 'home'%}">
+                   <div class="brand-logo">
+                       <i class="bi bi-building"></i>
+                   </div>
+                   <div class="brand-text">
+                       <span class="brand-name">CHAPP-Inn</span>
+                       <span class="brand-subtitle">Hotel Management</span>
+                   </div>
+               </a>
+               
+               <button class="navbar-toggler-modern" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                   <span class="toggler-line"></span>
+                   <span class="toggler-line"></span>
+                   <span class="toggler-line"></span>
                </button>
+               
                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                  <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                  <ul class="navbar-nav navbar-nav-modern me-auto mb-2 mb-lg-0">
                      <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{% url 'home'%}" >Home</a>
+                        <a class="nav-link-modern {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home'%}">
+                            <i class="bi bi-house-door"></i>
+                            <span>Reservas</span>
+                        </a>
                      </li>
                      <li class="nav-item">
-                        <a class="nav-link active btn btn-primary" href="{% url 'search'%}">Nueva reserva</a>
+                        <a class="nav-link-modern {% if request.resolver_match.url_name == 'search' %}active{% endif %}" href="{% url 'search'%}">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>Nueva Reserva</span>
+                        </a>
                      </li>
                      <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard'%}">Dashboard</a>
+                        <a class="nav-link-modern {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard'%}">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Dashboard</span>
+                        </a>
                      </li>
                      <li class="nav-item">
-                        <a class="nav-link" href="{% url 'rooms'%}">Habitaciones</a>
+                        <a class="nav-link-modern {% if request.resolver_match.url_name == 'rooms' %}active{% endif %}" href="{% url 'rooms'%}">
+                            <i class="bi bi-door-open"></i>
+                            <span>Habitaciones</span>
+                        </a>
                      </li>
                   </ul>
-                  <form action="{% url 'booking_search'%}" method="GET" class="d-flex">
-                     <input class="form-control me-2" type="search" required name="filter" placeholder="Nombre o Localizador" aria-label="Search">
-                     <button class="btn btn-outline-light" type="submit">Buscar </button>
-                  </form>
+                  
+                  <div class="navbar-search">
+                      <form action="{% url 'booking_search'%}" method="GET" class="search-form-modern">
+                         <div class="search-input-container">
+                             <i class="bi bi-search search-icon-modern"></i>
+                             <input class="search-input-modern" type="search" required name="filter" placeholder="Buscar reserva..." aria-label="Search">
+                             <button class="search-btn-modern" type="submit">
+                                 <i class="bi bi-arrow-right"></i>
+                             </button>
+                         </div>
+                      </form>
+                  </div>
                </div>
             </div>
          </nav>
